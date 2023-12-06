@@ -42,22 +42,26 @@ module Boat =
     let beatsRecord (pressTime: int64) raceTime record =
         calculateDistance pressTime raceTime > record
 
-    let rec calculateWins (pressTime: int64) raceTime record runningWins =
-        match pressTime = 0 with 
-        | true -> runningWins 
-        | false -> 
+    let rec findFirstWin (pressTime: int64) raceTime record moveTimeFunc =
+        match pressTime = 0 || pressTime > raceTime with
+        | true -> int64 0 
+        | false ->
             let beatRecord = beatsRecord pressTime raceTime record
-            if (beatRecord || runningWins = 0) then
-                calculateWins (pressTime - int64 1) raceTime record (runningWins + (match beatRecord with | true -> 1 | false -> 0))
-            else
-                runningWins
+            match beatRecord with
+            | true -> pressTime
+            | false -> findFirstWin (moveTimeFunc pressTime) raceTime record moveTimeFunc
+
+    let calculateWins raceTime record = 
+        let fastestPressWin = findFirstWin 1 raceTime record ((+) (int64 1))
+        let slowestPressWin = findFirstWin (raceTime - int64 1) raceTime record ((+) (int64 -1))
+        (slowestPressWin - fastestPressWin)
 
     let calculateWinsForRaces splitFunc lines =
         lines
         |> collectRaceAndBestTime splitFunc
-        |> Array.fold(fun wins (raceTime, record) ->
-            wins * calculateWins (raceTime - int64 1) raceTime record 0
-        ) 1
+        |> Array.fold(fun (wins: int64) (raceTime, record) ->
+            wins * calculateWins raceTime record
+        ) 1 
 
 module Part1 =
     open Boat
