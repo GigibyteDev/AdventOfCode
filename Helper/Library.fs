@@ -39,7 +39,7 @@ module Output =
         printfn $"{title}: {res}"
         printfn timerStr
 
-    let outputFileResultSeq (fn: System.String seq -> 't seq) (title: string) (lines: System.String seq) =
+    let outputFileResultSeq (fn: System.String seq -> 't) (title: string) (lines: System.String seq) =
         let timer = Timer.start()
         let res = (fn lines) |> Seq.mapi(fun i r -> i,r)
         let timerStr = timer |> Timer.stopWithOutputString
@@ -70,6 +70,9 @@ module String =
 
     let splitOnStringsTrim (splitStr:string seq) (string:String) =
         string.Split(splitStr |> Array.ofSeq, (StringSplitOptions.TrimEntries + StringSplitOptions.RemoveEmptyEntries))
+
+    let replace oldVal (newVal: String) (string: String) =
+        string.Replace(oldVal, newVal)
 
     let isDigit = System.Char.IsDigit
 
