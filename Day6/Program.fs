@@ -56,13 +56,8 @@ module Boat =
         lines
         |> collectRaceAndBestTime splitFunc
         |> Array.fold(fun wins (raceTime, record) ->
-            let currentWins = calculateWins (raceTime - int64 1) raceTime record 0
-            match wins with
-            | 0 ->
-                currentWins
-            | _ ->
-                wins * currentWins
-        ) 0
+            wins * calculateWins (raceTime - int64 1) raceTime record 0
+        ) 1
 
 module Part1 =
     open Boat
