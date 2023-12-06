@@ -1,7 +1,6 @@
 ﻿open Helper
 
 module Boat =
-
     let splitLine line =
         line
         |> String.splitOnStringsTrim [|":";" "|]
@@ -53,12 +52,9 @@ module Boat =
             else
                 runningWins
 
-module Part1 =
-    open Boat
-
-    let total lines =
+    let calculateWinsForRaces splitFunc lines =
         lines
-        |> collectRaceAndBestTime collectValuesAsSeperateNums
+        |> collectRaceAndBestTime splitFunc
         |> Array.fold(fun wins (raceTime, record) ->
             let currentWins = calculateWins (raceTime - int64 1) raceTime record 0
             match wins with
@@ -67,21 +63,18 @@ module Part1 =
             | _ ->
                 wins * currentWins
         ) 0
+
+module Part1 =
+    open Boat
+
+    let total =
+        calculateWinsForRaces collectValuesAsSeperateNums
 
 module Part2 =
     open Boat
 
-    let total lines =
-        lines
-        |> collectRaceAndBestTime collectValuesAsSingleNum
-        |> Array.fold(fun wins (raceTime, record) ->
-            let currentWins = calculateWins (raceTime - int64 1) raceTime record 0
-            match wins with
-            | 0 ->
-                currentWins
-            | _ ->
-                wins * currentWins
-        ) 0
+    let total =
+        calculateWinsForRaces collectValuesAsSingleNum
 
 input
 |> readLines 
