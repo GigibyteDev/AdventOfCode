@@ -52,9 +52,9 @@ module Boat =
             | false -> findFirstWin (moveTimeFunc pressTime) raceTime record moveTimeFunc
 
     let calculateWins raceTime record = 
-        let fastestPressWin = findFirstWin 1 raceTime record ((+)1L)
-        let slowestPressWin = findFirstWin (raceTime - 1L) raceTime record ((+)(-1L))
-        (slowestPressWin - fastestPressWin)
+        let shortestPressWin = findFirstWin 1 raceTime record ((+)1L)
+        let longestPressWin = findFirstWin (raceTime - 1L) raceTime record ((+)(-1L))
+        (longestPressWin - shortestPressWin + 1L)
 
     let calculateWinsForRaces splitFunc lines =
         lines
