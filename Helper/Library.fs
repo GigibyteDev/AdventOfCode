@@ -28,24 +28,32 @@ module Output =
     let outputResult (title: string) fn =
         let timer = Timer.start()
         let res = fn()
+        let timerStr = timer |> Timer.stopWithOutputString
         printfn $"{title}: {res}"
-        timer |> Timer.stopWithOutputString |> printfn
+        printfn timerStr
 
     let outputFileResult fn (title: string) lines =
         let timer = Timer.start()
         let res = fn lines
+        let timerStr = timer |> Timer.stopWithOutputString
         printfn $"{title}: {res}"
-        timer |> Timer.stopWithOutputString |> printfn
+        printfn timerStr
 
     let outputFileResultSeq (fn: System.String seq -> 't seq) (title: string) (lines: System.String seq) =
         let timer = Timer.start()
         let res = (fn lines) |> Seq.mapi(fun i r -> i,r)
+        let timerStr = timer |> Timer.stopWithOutputString
         printfn $"{title}"
         for (i, r) in res do
             printfn $"{i}: {r}"
-        timer |> Timer.stopWithOutputString |> printfn
+        printfn timerStr
 
+[<AutoOpen>]
 module File =
+    let input = @"Data\input.txt"
+
+    let test = @"Data\testInput.txt"
+
     let readLines filePath = System.IO.File.ReadLines(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + filePath)
 
 module String =    

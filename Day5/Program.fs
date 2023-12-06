@@ -167,8 +167,10 @@ module Part2 =
             ) seedRanges
             |> Seq.minBy(fun sr -> sr.StartNum)
         min.StartNum
-File.readLines @"Data\input.txt"
+input
+|> File.readLines
 |> outputFileResult Part1.total "Part 1"
 
-File.readLines @"Data\input.txt"
+input
+|> File.readLines
 |> outputFileResult Part2.total "Part 2"

@@ -2,7 +2,8 @@
 
 module Part1 =
     let total lines =
-        0
+        lines
 
-File.readLines @"Data\input.txt"
-|> outputFileResult Part1.total "Part 1"
+test
+|> readLines 
+|> outputFileResultSeq Part1.total "Part 1"
