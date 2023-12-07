@@ -39,12 +39,12 @@ module Output =
         printfn $"{title}: {res}"
         printfn timerStr
 
-    let outputFileResultSeq (fn: System.String seq -> 't) (title: string) (lines: System.String seq) =
+    let outputFileResultSeq fn (title: string) lines =
         let timer = Timer.start()
-        let res = (fn lines) |> Seq.mapi(fun i r -> i,r)
+        let res = fn lines 
         let timerStr = timer |> Timer.stopWithOutputString
         printfn $"{title}"
-        for (i, r) in res do
+        for (i, r) in res|> Seq.mapi(fun i r -> i,r) do
             printfn $"{i}: {r}"
         printfn timerStr
 
