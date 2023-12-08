@@ -19,6 +19,8 @@ module Timer =
 
 [<AutoOpen>]
 module Output =
+    open Spectre.Console
+
     let printf str =
         printf $"{str}"
 
