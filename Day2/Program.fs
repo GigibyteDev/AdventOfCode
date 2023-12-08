@@ -42,10 +42,7 @@ module Part1 =
             amt > 12
     
     let total =
-        File.readLines "Data\input.txt"
-        |> retrieveSumOfBadGames badCondition
-
-Part1.total |> System.Console.WriteLine
+        retrieveSumOfBadGames badCondition
 
 module Part2 =
     open Cube
@@ -72,6 +69,12 @@ module Part2 =
         |> Seq.sum
 
     let total =
-        File.readLines "Data\input.txt"
-        |> calculateTotalPower
+        calculateTotalPower
 
+input
+|> File.readLines
+|> outputFileResult Part1.total "Part 1"
+
+input
+|> File.readLines
+|> outputFileResult Part2.total "Part 2"
