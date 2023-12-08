@@ -90,7 +90,7 @@ module Output =
         root |> AnsiConsole.Write
         lineBreak
 
-    let outputFileResultSeq fn (title: string) lines =
+    let outputFileSeq fn (title: string) lines =
         let timer = Timer.start()
         let res = fn lines 
         let ts = timer |> Timer.stop
