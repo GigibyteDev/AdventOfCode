@@ -1,16 +1,11 @@
 ﻿open Helper
 
 module MapNav =
-    type Direction =
-    | Left
-    | Right
-    with
-        static member stringMap = [|"L",Left;"R",Right|] |> Map.ofArray
-        static member indexMap =[|Left,0;Right,1|] |> Map.ofArray
+    let indexMap =[|"L",0;"R",1|] |> Map.ofArray
 
     let retrieveDirections (line: string) =
         line
-        |> Seq.map(fun c -> Direction.stringMap[string c])
+        |> Seq.map(fun c -> string c)
         |> Array.ofSeq
     
     let retrieveDirectionsAndMappings (lines: string seq) =
@@ -28,17 +23,17 @@ module MapNav =
         )
         |> Map.ofSeq
     
-    let rec followMap (totalSteps: int) (currentLoc: string) (directionsSeq: Direction array) (dirIter: int) matchFunc (mapping: Map<string,string array>) =
+    let rec followMap (totalSteps: int) (currentLoc: string) (directionsSeq: string array) (dirIter: int) matchFunc (mapping: Map<string,string array>) =
         if matchFunc currentLoc then
             totalSteps
         else
             let dirIter' = (match dirIter >= (directionsSeq |> Seq.length) with | true -> 0 | false -> dirIter)
-            followMap (totalSteps + 1) (mapping[currentLoc][Direction.indexMap[directionsSeq[dirIter']]]) directionsSeq (dirIter' + 1) matchFunc mapping
+            followMap (totalSteps + 1) (mapping[currentLoc][indexMap[directionsSeq[dirIter']]]) directionsSeq (dirIter' + 1) matchFunc mapping
 
     let beginFollowingMap dirAndMapping =
         followMap 0 "AAA" (dirAndMapping |> fst) 0 (fun v -> v = "ZZZ") (dirAndMapping |> snd)
 
-    let retrieveAllZLocations (dirAndMapping: (Direction array*Map<string, string array>)) =
+    let retrieveAllZLocations (dirAndMapping: (string array*Map<string, string array>)) =
         let startingLocs = (dirAndMapping |> snd).Keys |> Seq.filter(fun k -> k |> Seq.last |> string = "A") |> Array.ofSeq
         startingLocs
         |> Array.map(fun start ->
