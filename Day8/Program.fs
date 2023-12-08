@@ -27,30 +27,22 @@ module MapNav =
             |> String.splitOnStringTrim ","
         )
         |> Map.ofSeq
-
-    let rec followMap (totalSteps: int) (currentLoc: string) (directionsSeq: Direction array) (dirIter: int) (mapping: Map<string,string array>) =
-        if currentLoc = "ZZZ" then
+    
+    let rec followMap (totalSteps: int) (currentLoc: string) (directionsSeq: Direction array) (dirIter: int) matchFunc (mapping: Map<string,string array>) =
+        if matchFunc currentLoc then
             totalSteps
         else
             let dirIter' = (match dirIter >= (directionsSeq |> Seq.length) with | true -> 0 | false -> dirIter)
-            followMap (totalSteps + 1) (mapping[currentLoc][Direction.indexMap[directionsSeq[dirIter']]]) directionsSeq (dirIter' + 1) mapping
+            followMap (totalSteps + 1) (mapping[currentLoc][Direction.indexMap[directionsSeq[dirIter']]]) directionsSeq (dirIter' + 1) matchFunc mapping
 
     let beginFollowingMap dirAndMapping =
-        followMap 0 "AAA" (dirAndMapping |> fst) 0 (dirAndMapping |> snd)
-
-    let rec findZSteps (totalSteps: int) (currentLoc: string) (directionsSeq: Direction array) (dirIter: int) (mapping: Map<string, string array>) =
-        let dirIter' = (match dirIter >= (directionsSeq |> Seq.length) with | true -> 0 | false -> dirIter)
-        match currentLoc |> Seq.last |> string = "Z" with
-        | true ->
-            totalSteps
-        | false ->
-            findZSteps (totalSteps + 1) (mapping[currentLoc][Direction.indexMap[directionsSeq[dirIter']]]) directionsSeq (dirIter' + 1) mapping
+        followMap 0 "AAA" (dirAndMapping |> fst) 0 (fun v -> v = "ZZZ") (dirAndMapping |> snd)
 
     let retrieveAllZLocations (dirAndMapping: (Direction array*Map<string, string array>)) =
         let startingLocs = (dirAndMapping |> snd).Keys |> Seq.filter(fun k -> k |> Seq.last |> string = "A") |> Array.ofSeq
         startingLocs
         |> Array.map(fun start ->
-            findZSteps 0 start (dirAndMapping |> fst) 0 (dirAndMapping |> snd)
+            followMap 0 start (dirAndMapping |> fst) 0 (fun v -> v |> Seq.last |> string = "Z") (dirAndMapping |> snd)
         )
 
 module Part1 =
