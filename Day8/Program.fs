@@ -49,9 +49,10 @@ module Part1 =
 module Part2 =
     open MapNav
     let total lines =
-        retrieveDirectionsAndMappings lines
-        |> retrieveAllZLocations
-        |> Math.lcmMultiple
+        let seq =
+            retrieveDirectionsAndMappings lines
+            |> retrieveAllZLocations
+        seq, seq |> Math.lcmMultiple
 
 input
 |> File.readLines
@@ -59,4 +60,4 @@ input
 
 input
 |> File.readLines
-|> outputFileResult Part2.total "Part 2"
+|> outputFileSeqAndResult Part2.total "Part 2"

@@ -60,13 +60,14 @@ module Part2 =
         |> Seq.map(fun v -> v |> Seq.max)
 
     let calculateTotalPower lines =
-        lines
-        |> Seq.map (fun line ->
-            line 
-            |> sanitizeLine
-            |> Seq.fold (fun power amt -> match power with | 0 -> amt | _ -> power * amt) 0
-        )
-        |> Seq.sum
+        let iter =
+            lines
+            |> Seq.map (fun line ->
+                line 
+                |> sanitizeLine
+                |> Seq.fold (fun power amt -> match power with | 0 -> amt | _ -> power * amt) 0
+            )
+        iter, iter |> Seq.sum
 
     let total =
         calculateTotalPower
@@ -77,4 +78,4 @@ input
 
 input
 |> File.readLines
-|> outputFileResult Part2.total "Part 2"
+|> outputFileSeqAndResult Part2.total "Part 2"
