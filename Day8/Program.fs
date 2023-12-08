@@ -61,11 +61,6 @@ module Part1 =
 
 module Part2 =
     open MapNav
-
-    let customOutput (data: int array) =
-        for d in data do
-            printfn $"Z Locs: {d}"
-
     let total lines =
         retrieveDirectionsAndMappings lines
         |> retrieveAllZLocations
