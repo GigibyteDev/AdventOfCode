@@ -78,9 +78,33 @@ module String =
 
     let isStringDigit (str: string) = str.Chars 0 |> isDigit
 
+    let trimChars (trimStr: string seq) (string: String) =
+        trimStr
+        |> Seq.fold (fun (str:string) (trim:string) ->
+            str.Trim(trim.Chars 0)
+        ) (string.Trim())
+
 module Seq =
     let addItem item items =
         Seq.append items (item |> Seq.singleton)
+
+module Math =
+    let rec gcd a b = 
+        match (a,b) with
+        | (x,0L) -> x
+        | (x,y) when x = y -> x
+        | (a,b) -> gcd b (a % b)
+
+    let lcm a b = 
+        let gcd = gcd a b
+        (int64 a * int64 b) / int64 gcd
+
+    let lcmMultiple (vals: int seq) =
+        vals
+        |> Seq.tail
+        |> Seq.fold(fun runningLCM val' ->
+            lcm runningLCM val'
+        ) (vals |> Seq.head |> int64)
 
 
 
