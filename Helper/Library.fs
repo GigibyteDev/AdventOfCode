@@ -75,8 +75,8 @@ module Output =
         let ts = timer |> Timer.stop
 
         let root = new Tree(title)
-        root.AddNode(res |> outputResWithPanel) |> ignore
-        root.AddNode(ts |> outputTimerWithTable) |> ignore
+        let res = root.AddNode(res |> outputResWithPanel)
+        res.AddNode(ts |> outputTimerWithTable) |> ignore
 
         root |> AnsiConsole.Write
 
