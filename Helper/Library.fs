@@ -21,7 +21,7 @@ module Timer =
 module Output =
     open Spectre.Console
 
-    let lineBreak = printfn $"============================================================"
+    let lineBreak() = printfn $"============================================================"
 
     let printf str =
         printf $"{str}"
@@ -84,7 +84,6 @@ module Output =
         let root = new Tree(title)
         let res = root.AddNode(res |> outputResWithPanel)
         res.AddNode(ts |> outputTimerWithTable) |> ignore
-
         root |> AnsiConsole.Write
 
     let outputFileResult fn (title: string) lines =
@@ -95,7 +94,7 @@ module Output =
         let res = root.AddNode (res |> outputResWithPanel)
         res.AddNode (ts |> outputTimerWithTable) |> ignore
         root |> AnsiConsole.Write
-        lineBreak
+        lineBreak()
 
     let outputFileSeq fn (title: string) lines =
         let timer = Timer.start()
@@ -106,7 +105,7 @@ module Output =
         let res = root.AddNode (res |> outputResSeqWithPanel)
         res.AddNode (ts |> outputTimerWithTable) |> ignore
         root |> AnsiConsole.Write
-        lineBreak
+        lineBreak()
 
     let outputFileSeqAndResult fn (title: string) lines =
         let timer = Timer.start()
@@ -117,7 +116,7 @@ module Output =
         res.AddNode (seq |> outputResSeqWithPanel) |> ignore
         res.AddNode (ts |> outputTimerWithTable) |> ignore
         root |> AnsiConsole.Write
-        lineBreak
+        lineBreak()
 
 [<AutoOpen>]
 module File =
