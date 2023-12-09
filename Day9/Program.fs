@@ -31,15 +31,11 @@ module OasisTraversal =
             | false ->
                 match (valsSubset |> seqToDiffs) |> traverseDown (valsSubset |> findValToPass |> Some) findValToPass addOrSub with
                 | Some newVal ->
-                    match newVal with
-                    | 0 ->
-                        prevLastVal
-                    | _ -> 
-                        match prevLastVal with
-                        | Some lastVal ->
-                            addOrSub lastVal newVal |> Some
-                        | None ->
-                            newVal |> Some
+                    match prevLastVal with
+                    | Some lastVal ->
+                        addOrSub lastVal newVal |> Some
+                    | None ->
+                        newVal |> Some
                 | None -> None
                 
     let findValidSubset findValToPass addOrSub (vals: int list) =
