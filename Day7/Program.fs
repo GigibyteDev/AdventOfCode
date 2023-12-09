@@ -149,9 +149,7 @@ module Part2 =
         compileLines Label.beatsJoker Hand.getGroupingWithJokers
         
 input
-|> File.readLines
 |> outputFileResult Part1.total "Part 1"
 
 input
-|> File.readLines
 |> outputFileResult Part2.total "Part 2"

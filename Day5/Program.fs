@@ -168,9 +168,7 @@ module Part2 =
             |> Seq.minBy(fun sr -> sr.StartNum)
         min.StartNum
 input
-|> File.readLines
 |> outputFileResult Part1.total "Part 1"
 
 input
-|> File.readLines
 |> outputFileResult Part2.total "Part 2"

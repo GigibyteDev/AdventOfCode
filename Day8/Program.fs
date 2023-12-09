@@ -55,9 +55,7 @@ module Part2 =
         seq, seq |> Math.lcmMultiple
 
 input
-|> File.readLines
 |> outputFileResult Part1.total "Part 1"
 
 input
-|> File.readLines
 |> outputFileSeqAndResult Part2.total "Part 2"

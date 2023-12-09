@@ -36,6 +36,13 @@ module Output =
         panel.Padding <- Padding(8, 0, 8, 0)
         panel.BorderColor( Color.Green4 ) |> ignore
         panel
+    
+    let resOutput (res:obj) =
+        match res with
+        | null -> "[NULL]"
+        | :? string -> $"{res}"
+        | :? System.Collections.IEnumerable as seq' -> seq' |> Seq.cast |> Seq.map(fun s -> s |> string) |> String.concat ","
+        | _ -> $"{res}"
 
     let outputResSeqWithPanel (res: 'a seq) =
         let table = new Table()
@@ -44,7 +51,7 @@ module Output =
         TableColumn("Result").LeftAligned() |> table.AddColumn |> ignore
 
         for (i,res') in (res |> Seq.mapi(fun i v -> i,v)) do
-            [|$"{i + 1}"; $"{res'}"|] |> table.AddRow |> ignore
+            [|$"{i + 1}"; $"{res' |> resOutput}"|] |> table.AddRow |> ignore
 
         table.Title <- TableTitle($"Iterations")
         table
@@ -114,11 +121,9 @@ module Output =
 
 [<AutoOpen>]
 module File =
-    let input = @"Data\input.txt"
-
-    let test = @"Data\testInput.txt"
-
     let readLines filePath = System.IO.File.ReadLines(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + filePath)
+    let input = @"Data\input.txt" |>  readLines
+    let test = @"Data\testInput.txt" |> readLines
 
 module String =    
     open System
@@ -169,6 +174,3 @@ module Math =
         |> Seq.fold(fun runningLCM val' ->
             lcm runningLCM val'
         ) (vals |> Seq.head |> int64)
-
-
-

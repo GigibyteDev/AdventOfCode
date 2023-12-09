@@ -73,9 +73,7 @@ module Part2 =
         calculateTotalPower
 
 input
-|> File.readLines
 |> outputFileResult Part1.total "Part 1"
 
 input
-|> File.readLines
 |> outputFileSeqAndResult Part2.total "Part 2"

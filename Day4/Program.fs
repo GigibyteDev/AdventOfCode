@@ -81,8 +81,8 @@ module Part2 =
         |> beginCounting
         |> Seq.sumBy(fun v -> v.Value)
 
-File.readLines "Data\input.txt"
+input
 |> outputFileResult Part1.total "Part 1"
 
-File.readLines @"Data\input.txt"
+input
 |> outputFileResult Part2.total "Part 2"

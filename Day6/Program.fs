@@ -76,9 +76,7 @@ module Part2 =
         calculateWinsForRaces collectValuesAsSingleNum
 
 input
-|> readLines 
 |> outputFileResult Part1.total "Part 1"
 
 input
-|> readLines 
 |> outputFileResult Part2.total "Part 2"
