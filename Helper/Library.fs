@@ -120,7 +120,13 @@ module Output =
 
 [<AutoOpen>]
 module File =
-    let readLines filePath = System.IO.File.ReadLines(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + filePath)
+    let readLines filePath = 
+        try
+            System.IO.File.ReadLines(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\" + filePath)
+        with
+            | :? System.IO.FileNotFoundException as msg-> 
+                printfn msg.Message
+                Set.empty
     let input = @"Data\input.txt" |>  readLines
     let test = @"Data\testInput.txt" |> readLines
 
