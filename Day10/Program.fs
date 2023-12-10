@@ -77,6 +77,48 @@ module PipeTraversal =
         let newLoc = moveDirection startingPos startingDir
         traverseLoop [startingPos;newLoc] newLoc startingDir.rev grid
 
+    let getNextCoord currentLoc (grid: string array array) =
+        let (x, y) = currentLoc
+        match (x + 1) >= (grid[y] |> Array.length) with
+        | true ->
+            match (y + 1) >= (grid |> Array.length) with
+            | true ->
+                None
+            | false ->
+                (0, y+1) |> Some
+        | false ->
+            (x+1,y) |> Some
+                
+    let retrieveStartPipeType startingPos grid =
+        let startingDirs = locateValidStartingDirections startingPos grid |> Set.ofSeq
+        pipeToDirMap
+        |> Map.findKey(fun _ v -> startingDirs = v)
+
+    let rec countInnerCoords (innerTotal: int) (currentLoc: (int*int)) (inLoop: bool) (entryPiece: string option) (loopCoords: (int*int) Set) (grid: string array array)=
+        match getNextCoord currentLoc grid with
+        | Some nextCoord -> 
+            match loopCoords |> Set.contains currentLoc with
+            | true -> // Current Location is On Pipe Loop
+                let (x,y) = currentLoc
+                match grid[y][x] with
+                | "-" -> countInnerCoords innerTotal nextCoord inLoop entryPiece loopCoords grid
+                | "|" -> countInnerCoords innerTotal nextCoord (inLoop |> not) entryPiece loopCoords grid
+                | _ as pipeType' -> 
+                    let pipeType = match pipeType' with | "S" -> retrieveStartPipeType currentLoc grid | _ -> pipeType'
+                    match entryPiece, pipeType with
+                    | None, pt ->
+                        countInnerCoords innerTotal nextCoord inLoop (Some pt) loopCoords grid
+                    | Some ep, pt ->
+                        match (pipeToDirMap[ep] |> Set.intersect pipeToDirMap[pt]) |> Seq.tryHead with
+                        | Some _ ->
+                            countInnerCoords innerTotal nextCoord inLoop None loopCoords grid
+                        | None ->
+                            countInnerCoords innerTotal nextCoord (inLoop |> not) None loopCoords grid
+            | false -> // Current Location is NOT on Pipe Loop, add to innerTotal Count if we're in loop, and go to next coord
+                countInnerCoords (innerTotal + (match inLoop with | true -> 1 | false -> 0)) nextCoord inLoop entryPiece loopCoords grid
+        | None ->
+            innerTotal
+
 module Part1 =
     open PipeTraversal
     let findFurthestStep gridAndStartingPos =
@@ -91,10 +133,12 @@ module Part2 =
     open PipeTraversal
 
     let total lines =
-        collectGridAndStartPos lines
-        |> fst
+        let (grid, startPos) = collectGridAndStartPos lines
+        let loopCoords = retrieveAllLoopCoords (grid, startPos) |> Set.ofList
+        countInnerCoords 0 (0,0) false None loopCoords grid
+        
 input
 |> outputFileResult Part1.total "Part 1"
 
-//input
-//|> outputFileSeq Part2.total "Part 2"
+input
+|> outputFileResult Part2.total "Part 2"
