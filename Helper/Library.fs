@@ -159,8 +159,66 @@ module String =
         ) (string.Trim())
 
 module Seq =
+    type ListMap<'a,'b when 'a : equality> = {
+        vals: ('a*'b) List
+    }
+    with
+        member this.Add (key: 'a) (value: 'b) =
+            match this.vals |> List.tryFind(fun (k, _) -> k = key) with
+            | Some _ ->
+                {vals = this.vals |> List.map(fun (k, v) -> match k = key with | true -> k,value | false -> k,v)}
+            | None ->
+                {vals = this.vals @ [(key,value)]}
+
+        member this.Remove (key: 'a) =
+            {vals = this.vals |> List.filter(fun (k,_) -> k = key |> not)}
+        member this.TryFind (key: 'a) = this.vals |> List.tryFind(fun (k, _) -> k = key)
+        static member tryFind (key: 'a) (this: ListMap<'a,'b>) = this.vals |> List.tryFind(fun (k, _) -> k = key)
+        static member add (key: 'a) (value: 'b) (this: ListMap<'a,'b>)=
+            match this.vals |> List.tryFind(fun (k, v) -> k = key) with
+            | Some _ ->
+                {vals = this.vals |> List.map(fun (k, v) -> match k = key with | true -> k,value | false -> k,v)}
+            | None ->
+                {vals = this.vals @ [(key,value)]}
+
+        static member remove (key: 'a) (this: ListMap<'a,'b>) =
+            {vals = this.vals |> List.filter(fun (k,_) -> k = key |> not)}
+
+        static member empty =
+            let t: List<('a*'b)> = List.empty
+            {vals = t}
+
     let addItem item items =
         Seq.append items (item |> Seq.singleton)
+
+module GridNav =
+    let nextCoord (grid: 'T array array) (coords: (int*int)) =
+        let (x,y) = coords
+        match x + 1, y with
+        | x,y when x < 0 || y < 0 -> None
+        | _,y when y >= (grid |> Array.length) -> None
+        | x,y when x >= (grid[y] |> Array.length) -> 
+            match y + 1 with
+            | y when y >= (grid |> Array.length) -> None
+            | _ -> (0, y + 1) |> Some
+        | _ -> (x + 1, y) |> Some
+
+    let rec loopThroughGrid' (coords: (int*int) option) (grid: 'T array array) (func: (int*int) -> ('T array array) -> 'a -> 'a) (res: 'a) =
+        match coords with
+        | Some c ->
+            loopThroughGrid' (c |> nextCoord grid) grid func (func c grid res)
+        | None ->
+            res
+
+    let loopThroughGrid (grid: 'T array array) func init = loopThroughGrid' ((0,0) |> Some) grid func init
+
+    let loopThroughGrid2 (grid: 'T array array) func val1 init = 
+        let (_, res) = loopThroughGrid' ((0,0) |> Some) grid func (val1, init)
+        res
+
+    let loopThroughGrid3 (grid: 'T array array) func val1 val2 init = 
+        let (_, _, res) = loopThroughGrid' ((0,0) |> Some) grid func (val1, val2, init)
+        res
 
 module Math =
     let rec gcd a b = 
