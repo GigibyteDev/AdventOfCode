@@ -192,21 +192,61 @@ module Seq =
         Seq.append items (item |> Seq.singleton)
 
 module GridNav =
-    let nextCoord (grid: 'T array array) (coords: (int*int)) =
+    type Direction =
+    | North
+    | South
+    | East
+    | West
+    with
+        member this.rev =
+            match this with
+            | North -> South
+            | South -> North
+            | West -> East
+            | East -> West
+
+    let private nextCoord' (grid: 'T array array) dir loops rev (coords: (int*int))=
         let (x,y) = coords
-        match x + 1, y with
-        | x,y when x < 0 || y < 0 -> None
-        | _,y when y >= (grid |> Array.length) -> None
-        | x,y when x >= (grid[y] |> Array.length) -> 
-            match y + 1 with
-            | y when y >= (grid |> Array.length) -> None
-            | _ -> (0, y + 1) |> Some
-        | _ -> (x + 1, y) |> Some
+        let (x',y') =
+            match dir with
+            | North -> (x, y - 1)
+            | South -> (x, y + 1)
+            | East -> (x + 1, y)
+            | West -> (x - 1, y)
+        match dir with
+        | North
+        | South ->
+            match y' with
+            | y when y < 0 || y >= grid.Length ->
+                match loops with
+                | true ->
+                    let loopAdd = (match rev with | true -> -1 | false -> 1)
+                    match x' with 
+                    | x when x + loopAdd < 0 || x + loopAdd >= grid[0].Length -> None
+                    | x -> (x + loopAdd, match dir with | North -> grid.Length - 1 | _ -> 0) |> Some
+                | false -> None
+            | y -> (x', y') |> Some
+        | East
+        | West ->
+            match x' with
+            | x when x < 0 || x >= grid[0].Length ->
+                match loops with
+                | true ->
+                    let loopAdd = (match rev with | true -> -1 | false -> 1)
+                    match y' with
+                    | y when x + loopAdd < 0 || y + loopAdd >= grid.Length -> None
+                    | y -> ((match dir with | West -> grid[0].Length - 1 | _ -> 0), y + loopAdd) |> Some
+                | false -> None
+            | x -> (x', y') |> Some
+
+    let nextCoord grid dir coords = nextCoord' grid dir true false coords
+    let nextCoordRev grid dir coords = nextCoord' grid dir true true coords
+    let nextCoordNoLoop grid dir coords = nextCoord' grid dir false false coords
 
     let rec loopThroughGrid' (coords: (int*int) option) (grid: 'T array array) (func: (int*int) -> ('T array array) -> 'a -> 'a) (res: 'a) =
         match coords with
         | Some c ->
-            loopThroughGrid' (c |> nextCoord grid) grid func (func c grid res)
+            loopThroughGrid' (c |> nextCoord grid East) grid func (func c grid res)
         | None ->
             res
 
