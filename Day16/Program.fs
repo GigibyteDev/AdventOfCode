@@ -46,7 +46,6 @@ module MirrorMaze =
 
     let beginLoop positionGatherFunc grid =
         let mutable cache': Set<_> = Set.empty
-
         let rec traverseMaze coord (grid: char array array) (dir: Direction) (energizedCoords: Set<int*int>) =
             match coord with
             | Some coord ->
@@ -64,18 +63,11 @@ module MirrorMaze =
                     energizedCoords |> Set.union newEnergizedCoords
             | None -> energizedCoords
 
-        let startingPositions = 
-            positionGatherFunc grid
-        let allSets = 
-            startingPositions
-            |> Seq.map(fun sp -> 
-                match sp |> fst = (3,0) with
-                | true -> ()
-                | false -> ()
-                cache' <- Set.empty
-                traverseMaze ((sp |> fst) |> Some) grid (sp |> snd) Set.empty
-                )
-        allSets
+        positionGatherFunc grid
+        |> Seq.map(fun sp -> 
+            cache' <- Set.empty
+            traverseMaze ((sp |> fst) |> Some) grid (sp |> snd) Set.empty
+        ) 
         |> Seq.maxBy(fun set -> set |> Seq.length)
         |> Seq.length
         
