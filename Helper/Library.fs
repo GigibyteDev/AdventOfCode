@@ -130,6 +130,9 @@ module File =
     let input = @"Data\input.txt" |>  readLines
     let test = @"Data\testInput.txt" |> readLines
 
+    let createCharGrid lines = lines |> Seq.map(fun (line: string) -> line.ToCharArray()) |> Array.ofSeq
+    let createIntGrid lines = lines |> Seq.map(fun (line: string) -> line |> Seq.map(fun c -> c |> string |> System.Int32.Parse) |> Array.ofSeq) |> Array.ofSeq
+
 module String =    
     open System
 
@@ -239,14 +242,14 @@ module GridNav =
                 | false -> None
             | x -> (x', y') |> Some
 
-    let nextCoord grid dir coords = nextCoord' grid dir true false coords
+    let nextCoordLoop grid dir coords = nextCoord' grid dir true false coords
     let nextCoordRev grid dir coords = nextCoord' grid dir true true coords
-    let nextCoordNoLoop grid dir coords = nextCoord' grid dir false false coords
+    let nextCoord grid dir coords = nextCoord' grid dir false false coords
 
     let rec loopThroughGrid' (coords: (int*int) option) (grid: 'T array array) (func: (int*int) -> ('T array array) -> 'a -> 'a) (res: 'a) =
         match coords with
         | Some c ->
-            loopThroughGrid' (c |> nextCoord grid East) grid func (func c grid res)
+            loopThroughGrid' (c |> nextCoordLoop grid East) grid func (func c grid res)
         | None ->
             res
 
@@ -259,6 +262,10 @@ module GridNav =
     let loopThroughGrid3 (grid: 'T array array) func val1 val2 init = 
         let (_, _, res) = loopThroughGrid' ((0,0) |> Some) grid func (val1, val2, init)
         res
+
+    let at coord (grid: 'b array array) =
+        let (x, y) = coord
+        grid[y][x]
 
 module Math =
     let rec gcd a b = 

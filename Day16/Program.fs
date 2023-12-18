@@ -57,7 +57,7 @@ module MirrorMaze =
                     let newEnergizedCoords =
                         mirrorConversionMap dir.rev (grid[y][x])
                         |> Array.map(fun newDir -> 
-                            let newCoord = (nextCoordNoLoop grid newDir coord)
+                            let newCoord = (nextCoord grid newDir coord)
                             traverseMaze newCoord grid newDir (Set.empty.Add(coord)))
                         |> Set.unionMany
                     energizedCoords |> Set.union newEnergizedCoords
