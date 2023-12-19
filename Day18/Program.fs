@@ -36,7 +36,7 @@ module DiggyDiggyHole =
                     | East -> (curX + ins.length), curY, totalPerim + ins.length
                     | South -> curX, (curY + ins.length), totalPerim + ins.length
                     | West -> (curX - ins.length), curY, totalPerim + ins.length
-                (lines @[(nCurX,nCurY)], nCurX, nCurY, totalPerim)
+                ((nCurX,nCurY) :: lines, nCurX, nCurY, totalPerim)
             ) (List.empty, 0L, 0L, 0L)
         (points, totalPerim)
 
