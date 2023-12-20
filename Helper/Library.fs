@@ -296,6 +296,7 @@ module Math =
 
     let lcmMultiple (vals: int seq) =
         vals
+        |> Seq.map(fun v -> int64 v)
         |> Seq.tail
         |> Seq.fold(fun runningLCM val' ->
             lcm runningLCM val'
