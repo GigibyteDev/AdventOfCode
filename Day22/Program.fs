@@ -1,6 +1,7 @@
 ﻿open Helper
 
 module Bricks =
+    open System.Collections.Generic
     type Brick = {
         id: int
         blocks: Set<int*int*int>
@@ -50,24 +51,44 @@ module Bricks =
                 newMap.Add(brickToDrop.id, {brickToDrop with restingOn = (brickToDrop.restingOn |> Set.union (bricksBelow |> Seq.map(fun bb -> bb.Key) |> Set.ofSeq))})
             | false ->
                 findBrickBelowAndUpdateMap allBricks {brickToDrop with blocks = newBrickLocs}
+    
 
-    let findSupportBricks (initBricks: Map<int,Brick>) =
-        let mutable bricks = initBricks
-
-        let rec dropBrick brickId =
+    let dropAllBricks (initBricks: Map<int,Brick>) =
+        let rec dropBrick bricks brickId =
             match bricks |> Map.tryFind brickId with
-            | Some brick ->
-                bricks <- findBrickBelowAndUpdateMap bricks brick
-                dropBrick (brickId + 1)
-            | None -> ()
+            | Some brick -> dropBrick (findBrickBelowAndUpdateMap bricks brick) (brickId + 1)
+            | None -> bricks
 
-        dropBrick 1
-        bricks 
+        dropBrick initBricks 1
+
+    let retrieveBrickChainReactionLengths (bricks: Map<int,Brick>) =
+        let mutable movedBricks = Set.empty
+        let queue = Queue<_>()
+
+        let rec calcAffectedBlocks totalAffectedBlocks =
+            match queue.TryDequeue() with
+            | true, blockId ->
+                bricks[blockId].restingBlocks
+                |> Set.fold(fun runningTotal b ->
+                    match movedBricks.Contains(b) |> not && Set.isSubset bricks[b].restingOn movedBricks with
+                    | true -> 
+                        movedBricks <- movedBricks |> Set.union (b |> Set.singleton)
+                        queue.Enqueue b
+                        runningTotal + 1
+                    | false -> runningTotal
+                ) totalAffectedBlocks
+                |> calcAffectedBlocks
+            | false, _ -> totalAffectedBlocks
+        
+        bricks |> Map.keys |> Seq.sumBy(fun key -> 
+            movedBricks <- key |> Set.singleton
+            queue.Enqueue key
+            calcAffectedBlocks 0
+        )
 
     let countDisintegratableBricks bricks =
         bricks 
-        |> Map.filter(fun key b -> bricks |> Map.exists(fun _ v -> v.restingOn.Contains(key) && v.restingOn |> Seq.length = 1) |> not)
-        |> Array.ofSeq
+        |> Map.filter(fun key _ -> bricks |> Map.exists(fun _ v -> v.restingOn = (key |> Set.singleton)) |> not)
         |> Seq.length
 
 module Part1 =
@@ -75,7 +96,19 @@ module Part1 =
     let total lines =
         lines
         |> createBricks 
-        |> findSupportBricks
+        |> dropAllBricks
         |> countDisintegratableBricks
-input
+
+module Part2 =
+    open Bricks
+    let total lines =
+        lines
+        |> createBricks
+        |> dropAllBricks
+        |> retrieveBrickChainReactionLengths
+
+test
 |> outputFileResult Part1.total "Part 1"
+
+input
+|> outputFileResult Part2.total "Part 2"
