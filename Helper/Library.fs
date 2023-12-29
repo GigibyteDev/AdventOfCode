@@ -56,7 +56,6 @@ module Output =
     let outputResSeqWithPanel (res: 'a seq) =
         let table = new Table()
         table.Border <- TableBorder.Double
-        table.Expand <- true
         TableColumn("Iter").RightAligned() |> table.AddColumn |> ignore
         TableColumn("Result").LeftAligned() |> table.AddColumn |> ignore
 
@@ -145,6 +144,10 @@ module File =
 
     let createCharGrid lines = lines |> Seq.map(fun (line: string) -> line.ToCharArray()) |> Array.ofSeq
     let createIntGrid lines = lines |> Seq.map(fun (line: string) -> line |> Seq.map(fun c -> c |> string |> System.Int32.Parse) |> Array.ofSeq) |> Array.ofSeq
+    let createArray2D gridCreationFunc lines = 
+        let (array: 'T array array) =
+            lines |> gridCreationFunc 
+        Array2D.init array[0].Length array.Length (fun x y -> array[y][x])
 
 module String =    
     open System
@@ -227,6 +230,7 @@ module GridNav =
             | South -> (x, y + 1)
             | East -> (x + 1, y)
             | West -> (x - 1, y)
+        static member all = [|North; South; East; West|]
 
     let private nextCoord' (gridWidth: int) (gridHeight: int) (dir: Direction) loops rev (coords: (int*int))=
         let (x,y) = coords
@@ -258,12 +262,31 @@ module GridNav =
                 | false -> None
             | x -> (x', y') |> Some
 
+    let nextCoordWrap' xLength yLength (dir: Direction) pos =
+        let (nx,ny) = dir.coordChange pos
+        let rx =
+            match nx with
+            | x when x < 0 -> System.Int32.Clamp(xLength - ((-x) % xLength), 0, xLength - 1)
+            | x -> (x % xLength)
+        let ry =
+            match ny with
+            | y when y < 0 -> System.Int32.Clamp(yLength - ((-y) % yLength), 0, yLength - 1)
+            | y -> (y % yLength)
+
+        (nx,ny), (rx,ry)
+
     let nextCoordLoop (grid: 'T array array) dir coords = nextCoord' grid[0].Length grid.Length dir true false coords
     let nextCoordRev (grid: 'T array array) dir coords = nextCoord' grid[0].Length grid.Length dir true true coords
+    let nextCoordWrap (grid: 'T array array) (dir: Direction) pos = nextCoordWrap' grid[0].Length grid.Length dir pos
     let nextCoord (grid: 'T array array) dir coords = nextCoord' grid[0].Length grid.Length dir false false coords
 
     let nextCoordLoopXY gridWidth gridHeight dir coords = nextCoord' gridWidth gridHeight dir true false coords
+    let nextCoordWrapXY lengthX lengthY (dir: Direction) pos = nextCoordWrap' lengthX lengthY dir pos
     let nextCoordXY gridWidth gridHeight dir coords = nextCoord' gridWidth gridHeight dir false false coords
+
+    let nextCoordArray (grid: 'T array2d) dir coords = nextCoord' (grid.GetLength(0)) (grid.GetLength(1)) dir false false coords
+    let nextCoordLoopArray (grid: 'T array2d) dir coords = nextCoord' (grid.GetLength(0)) (grid.GetLength(1)) dir true false coords
+    let nextCoordWrapArray (grid: 'T array2d) (dir: Direction) pos = nextCoordWrap' (grid.GetLength(0)) (grid.GetLength(1)) dir pos
 
     let rec loopThroughGrid' (coords: (int*int) option) (grid: 'T array array) (func: (int*int) -> ('T array array) -> 'a -> 'a) (res: 'a) =
         match coords with
@@ -286,18 +309,10 @@ module GridNav =
         let (x, y) = coord
         grid[y][x]
 
-    let nextCoordWrap (grid: 'T array array) (dir: Direction) pos =
-        let (nx,ny) = dir.coordChange pos
-        let rx =
-            match nx with
-            | x when x < 0 -> System.Int32.Clamp(grid[0].Length - ((-x) % grid[0].Length), 0, grid[0].Length - 1)
-            | x -> (x % grid[0].Length)
-        let ry =
-            match ny with
-            | y when y < 0 -> System.Int32.Clamp(grid.Length - ((-y) % grid.Length), 0, grid.Length - 1)
-            | y -> (y % grid.Length)
-
-        Some((nx,ny), grid |> at (rx,ry))
+    let aat coord (grid: 'b array2d) =
+        let (x, y) = coord
+        grid[x,y]
+        
 
 module Math =
     let rec gcd a b = 
