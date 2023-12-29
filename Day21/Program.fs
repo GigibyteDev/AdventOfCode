@@ -3,19 +3,6 @@
 module StepCount =
     open GridNav
     open System.Collections.Generic
-    
-    let retrieveLoopedCoord (grid: 'T array array) (dir: Direction) pos =
-        let (nx,ny) = dir.coordChange pos
-        let rx =
-            match nx with
-            | x when x < 0 -> System.Int32.Clamp(grid[0].Length - ((-x) % grid[0].Length), 0, grid[0].Length - 1)
-            | x -> (x % grid[0].Length)
-        let ry =
-            match ny with
-            | y when y < 0 -> System.Int32.Clamp(grid.Length - ((-y) % grid.Length), 0, grid.Length - 1)
-            | y -> (y % grid.Length)
-
-        Some((nx,ny), grid |> at (rx,ry))
 
     let retrieveNonLoopedCoord (grid: 'T array array) (dir: Direction) pos =
         let v = nextCoord grid dir pos
@@ -23,6 +10,24 @@ module StepCount =
         | Some nc ->
             Some (nc, grid |> at nc)
         | None -> None
+    
+    let countSteps (totalSteps,steps) =
+        steps
+        |> Map.filter(fun key v -> v <= totalSteps && v % 2 = 0)
+        |> Seq.length
+
+    let diamondCount (_, (steps: Map<int*int,int>)) =
+        // Algorithm From https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21
+        let evens = steps |> Map.filter(fun key v -> (v % 2) = 0 && v > 65) |> Seq.length |> int64
+        let odds = steps |> Map.filter(fun key v -> (v % 2) <> 0 && v > 65) |> Seq.length |> int64
+
+        let evenFull = steps |> Map.filter(fun k v -> (v % 2) = 0) |> Seq.length |> int64
+        let oddFull = steps |> Map.filter(fun k v -> (v % 2) <> 0) |> Seq.length  |> int64
+
+        let n = 202300L
+
+        let p2 = ((n + 1L)*(n + 1L)) * oddFull + (n*n) * evenFull - (n + 1L) * odds + n * evens
+        p2
 
     let beginSteps totalSteps nextCoordFunc (grid: char array array) =
         let queue = PriorityQueue<int*int, int>()
@@ -53,9 +58,7 @@ module StepCount =
 
         queue.Enqueue((grid[0].Length / 2, grid.Length / 2), 0)
 
-        findSteps Map.empty
-        |> Map.filter(fun key v -> v <= totalSteps && v % 2 = 0)
-        |> Seq.length
+        totalSteps, findSteps Map.empty
 
 module Part1 =
     open StepCount
@@ -63,17 +66,18 @@ module Part1 =
         lines
         |> createCharGrid
         |> beginSteps 64 retrieveNonLoopedCoord
+        |> countSteps
 
 module Part2 =
     open StepCount
     let total lines =
         lines
         |> createCharGrid
-        |> beginSteps 500 retrieveLoopedCoord
-           
+        |> beginSteps 500 retrieveNonLoopedCoord
+        |> diamondCount
 
 input
 |> outputFileResult Part1.total "Part 1"
 
-test
+input
 |> outputFileResult Part2.total "Part 2"

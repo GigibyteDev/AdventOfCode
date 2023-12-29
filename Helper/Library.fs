@@ -286,6 +286,19 @@ module GridNav =
         let (x, y) = coord
         grid[y][x]
 
+    let nextCoordWrap (grid: 'T array array) (dir: Direction) pos =
+        let (nx,ny) = dir.coordChange pos
+        let rx =
+            match nx with
+            | x when x < 0 -> System.Int32.Clamp(grid[0].Length - ((-x) % grid[0].Length), 0, grid[0].Length - 1)
+            | x -> (x % grid[0].Length)
+        let ry =
+            match ny with
+            | y when y < 0 -> System.Int32.Clamp(grid.Length - ((-y) % grid.Length), 0, grid.Length - 1)
+            | y -> (y % grid.Length)
+
+        Some((nx,ny), grid |> at (rx,ry))
+
 module Math =
     let rec gcd a b = 
         match (a,b) with
