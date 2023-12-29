@@ -220,15 +220,18 @@ module GridNav =
             | South -> North
             | West -> East
             | East -> West
-
-    let private nextCoord' (gridWidth: int) (gridHeight: int) dir loops rev (coords: (int*int))=
-        let (x,y) = coords
-        let (x',y') =
-            match dir with
+        member this.coordChange coord =
+            let (x, y) = coord
+            match this with
             | North -> (x, y - 1)
             | South -> (x, y + 1)
             | East -> (x + 1, y)
             | West -> (x - 1, y)
+
+    let private nextCoord' (gridWidth: int) (gridHeight: int) (dir: Direction) loops rev (coords: (int*int))=
+        let (x,y) = coords
+        let (x',y') = dir.coordChange coords
+
         match dir with
         | North
         | South ->

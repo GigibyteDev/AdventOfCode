@@ -107,7 +107,7 @@ module Part2 =
         |> dropAllBricks
         |> retrieveBrickChainReactionLengths
 
-test
+input
 |> outputFileResult Part1.total "Part 1"
 
 input
