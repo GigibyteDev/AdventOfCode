@@ -24,8 +24,8 @@ module Karger =
                 | 2 -> graph
                 | _ -> 
                     let r = new System.Random()
-                    let randVerts = graph.VertSet |> Seq.sortBy(fun v -> r.Next()) |> Array.ofSeq
-                    let v1, v2 = randVerts |> Array.head, randVerts |> Array.last
+                    let v1 = graph.VertSet |> Seq.sortBy(fun v -> r.Next()) |> Array.ofSeq |> Array.head
+                    let v2 = graph.AllConnections v1 |> Seq.sortBy(fun v -> r.Next()) |> Array.ofSeq |> Array.head
                     graph |> combine v1 v2 |> combinePoints
             let twoVertGraph = combinePoints graph
             let verts = twoVertGraph.VertSet |> Array.ofSeq
@@ -36,12 +36,6 @@ module Karger =
                 for part2 in (v2 |> String.splitOnStringTrim "_" |> Array.distinct) do
                     if (outgoingVerts.Contains(part2)) then
                         nrCuts <- nrCuts + 1
-
-            //for part in (v2 |> String.splitOnStringTrim "_") do 
-            //    let outgoingVerts = graph.AllConnections part
-            //    for part2 in (v1 |> String.splitOnStringTrim "_") do
-            //        if (outgoingVerts.Contains(part2)) then
-            //            nrCuts <- nrCuts + 1
             match nrCuts with
             | 3 -> v1,v2
             | _ -> 
