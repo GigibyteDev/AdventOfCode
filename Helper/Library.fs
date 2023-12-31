@@ -149,6 +149,124 @@ module File =
             lines |> gridCreationFunc 
         Array2D.init array[0].Length array.Length (fun x y -> array[y][x])
 
+module Set =
+        let isNonEmptySubset s1 s2 = not (Set.isEmpty s1) && Set.isSubset s1 s2 
+        let (|Empty|NonEmpty|) s = if Set.isEmpty s then Empty else NonEmpty s
+
+module Map =
+    let tryFind2 k1 k2 = Map.tryFind k1  >> Option.bind (Map.tryFind k2)
+
+module Graph = 
+    let Const a _ = a
+    module DirectionalGraph =
+        type DirectionalGraph<'a> when 'a: comparison = 
+            { 
+                Vertices: 'a Set;
+                OutgoingEdges:Map<'a, Map<'a, int>>;
+                IncomingEdges: Map<'a, Map<'a, int>> 
+            }
+
+            member private this.connections selector v = 
+                match (this |> selector |> Map.tryFind v) with
+                | Some neighbours -> neighbours |> Map.keys |> Set.ofSeq
+                | None -> Set.empty
+            member this.OutgoingConnections = this.connections (_.OutgoingEdges)
+            member this.IncomingConnections = this.connections (_.IncomingEdges)
+            member this.AllConnections v = Set.union (this.connections (_.IncomingEdges) v) (this.connections (_.OutgoingEdges) v)
+
+        let empty = { Vertices = Set.empty; OutgoingEdges = Map.empty ; IncomingEdges = Map.empty }
+        let addVertex v this = 
+            { 
+                Vertices = Set.add v this.Vertices; 
+                OutgoingEdges = this.OutgoingEdges |> Map.tryFind v |> Option.map (Const this.OutgoingEdges) |> Option.defaultValue (Map.add v Map.empty this.OutgoingEdges)
+                IncomingEdges = this.IncomingEdges |> Map.tryFind v |> Option.map (Const this.IncomingEdges) |> Option.defaultValue (Map.add v Map.empty this.IncomingEdges)
+            }
+        let removeVertex v this =
+            {
+                Vertices = Set.remove v this.Vertices
+                OutgoingEdges = Map.remove v this.OutgoingEdges |> Map.map(fun _ e -> e.Remove v)
+                IncomingEdges = Map.remove v this.IncomingEdges |> Map.map(fun _ e -> e.Remove v)
+            }
+        let addEdge v1 v2 d this = { 
+                Vertices = this.Vertices |> Set.union ([|v1; v2|] |> Set.ofArray)
+                OutgoingEdges = Map.add v1 (Map.add v2 d this.OutgoingEdges[v1]) this.OutgoingEdges 
+                IncomingEdges = Map.add v2 (Map.add v1 d this.IncomingEdges[v2]) this.IncomingEdges
+        }
+        let removeEdge v1 v2 this = { 
+            this with
+                OutgoingEdges = Map.add v1 (Map.remove v2 this.OutgoingEdges[v1]) this.OutgoingEdges 
+                IncomingEdges = Map.add v2 (Map.remove v1 this.IncomingEdges[v2]) this.IncomingEdges
+        }
+
+        let combine v1 v2 this' = 
+            let this = this' |> removeEdge v1 v2
+            let incommingConns = this.IncomingConnections v1 |> Set.union (this.IncomingConnections v2)
+            let outgoingConns = this.OutgoingConnections v1 |> Set.union (this.OutgoingConnections v2)
+            let newVert = $"{v1}_{v2}"
+            let newVertGraph = 
+                this
+                |> removeVertex v1
+                |> removeVertex v2
+                |> addVertex newVert
+            let newInConnsGraph = 
+                incommingConns
+                |> Set.filter(fun c -> c <> v1 && c <> v2)
+                |> Set.fold(fun g c ->
+                    g |> addEdge c newVert 1
+                ) newVertGraph
+            outgoingConns
+            |> Set.filter(fun c -> c <> v1 && c <> v2)
+            |> Set.fold(fun g c ->
+                g |> addEdge newVert c 1
+            ) newInConnsGraph
+
+    module AdjacencyGraph =
+        type AdjacencyGraph<'a> when 'a: comparison = 
+            { 
+                Vertices: Map<'a, Map<'a, int>> 
+            }
+            member this.AllConnections v = this.Vertices[v] |> Seq.map(fun v -> v.Key) |> Set.ofSeq
+            member this.VertSet = this.Vertices |> Map.keys |> Set.ofSeq
+
+        let empty = { Vertices = Map.empty }
+        let addVertex v this = 
+            { 
+                Vertices = match this.Vertices |> Map.tryFind v with | Some _ -> this.Vertices | None -> this.Vertices.Add(v, Map.empty)
+            }
+        let removeVertex v this =
+            {
+                Vertices = this.Vertices |> Map.remove v |> Map.map(fun key verts -> verts.Remove(v))
+            }
+        let addEdge v1 v2 d this = 
+            let v1Map = match this.Vertices |> Map.tryFind v1 with | Some pm -> pm.Add(v2,1) | None -> Map.empty.Add(v2, 1)
+            let v2Map = match this.Vertices |> Map.tryFind v2 with | Some pm -> pm.Add(v1,1) | None -> Map.empty.Add(v1, 1)
+            { 
+                Vertices = this.Vertices.Add(v1, v1Map).Add(v2, v2Map)
+            }
+        let removeEdge v1 v2 this = 
+            let v1Map = match this.Vertices |> Map.tryFind v1 with | Some pm -> pm.Remove(v2) | None -> Map.empty
+            let v2Map = match this.Vertices |> Map.tryFind v2 with | Some pm -> pm.Remove(v1) | None -> Map.empty
+            {
+                Vertices = this.Vertices.Add(v1, v1Map).Add(v2, v2Map)
+            }
+    
+
+        let combine v1 v2 this' = 
+            let this = this' |> removeEdge v1 v2
+            let comms = this.AllConnections v1 |> Set.union (this.AllConnections v2)
+            let newVert = $"{v1}_{v2}"
+            let newVertGraph = 
+                this
+                |> removeVertex v1
+                |> removeVertex v2
+                |> addVertex newVert
+            comms
+            |> Set.filter(fun c -> c <> v1 && c <> v2)
+            |> Set.fold(fun g c ->
+                g |> addEdge newVert c 1
+            ) newVertGraph
+        
+
 module String =    
     open System
 

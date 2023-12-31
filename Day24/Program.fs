@@ -56,7 +56,6 @@ module HailStorm =
         // Continuing to research this...
 
         let hail = hail' |> Array.take 3
-        let pick3 = Seq.toArray >> fun a -> (a[0], a[1], a[2])
         let (h1, h2, h3) = hail[0],hail[1],hail[2]
         let (h1x, h1y, h1z) =      (double h1.px,double h1.py,double h1.pz)
         let (h1vx, h1vy, h1vz) =   (double h1.vx,double h1.vy,double h1.vz)
