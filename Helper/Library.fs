@@ -249,7 +249,6 @@ module Graph =
             {
                 Vertices = this.Vertices.Add(v1, v1Map).Add(v2, v2Map)
             }
-    
 
         let combine v1 v2 this' = 
             let this = this' |> removeEdge v1 v2
@@ -265,6 +264,22 @@ module Graph =
             |> Set.fold(fun g c ->
                 g |> addEdge newVert c 1
             ) newVertGraph
+
+        let dijkstra (start: 'a) (finish: 'a) (this: AdjacencyGraph<'a>) =
+            let queue = System.Collections.Generic.PriorityQueue<_, int>()
+            let rec step stepHistory totalSteps =
+                match queue.TryDequeue() with
+                | false, _, _ -> None
+                | true, v, total when v = finish -> Some(totalSteps + total)
+                | true, v, total ->
+                    let steps = Set.difference (this.AllConnections v) stepHistory
+                    steps
+                    |> Set.iter(fun s ->
+                        queue.Enqueue(s, this.Vertices[v][s])
+                    )
+                    step (stepHistory.Add v) (totalSteps + total)
+            queue.Enqueue(start, 0)
+            step Set.empty 0
         
 
 module String =    

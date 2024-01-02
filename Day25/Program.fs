@@ -16,8 +16,6 @@ module Karger =
         ) empty
     
     let compute (graph: AdjacencyGraph<string>) =
-        let mutable history = Set.empty
-        let mutable runningLowest = graph.VertSet.Count
         let rec compute'() =
             let rec combinePoints (graph: AdjacencyGraph<string>) = 
                 match graph.Vertices.Count with
@@ -39,7 +37,6 @@ module Karger =
             match nrCuts with
             | 3 -> v1,v2
             | _ -> 
-                runningLowest <- System.Int32.Min(runningLowest, nrCuts)
                 compute'()
         compute'()
 
